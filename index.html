@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>첫여름</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F5EFE3;
+      --paper-dark: #EBE2D0;
+      --ink: #2A2118;
+      --ink-light: #6B5C46;
+      --ink-faint: #A8967C;
+      --film: #C8A86A;
+      --white: #FDFAF4;
+      --sage-dark: #4E6E4B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* 그레인 */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.6;
+    }
+
+    /* ━━━━ HERO ━━━━ */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .film-strip {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 8px;
+      background: repeating-linear-gradient(90deg,
+        var(--paper-dark) 0, var(--paper-dark) 12px,
+        transparent 12px, transparent 20px);
+    }
+
+    .hero-eyebrow {
+      font-size: 9px;
+      letter-spacing: 6px;
+      color: var(--ink-faint);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: clamp(64px, 20vw, 104px);
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .hero-sub {
+      margin-top: 18px;
+      font-size: clamp(12px, 3.5vw, 15px);
+      letter-spacing: 4px;
+      color: var(--ink-faint);
+    }
+
+    .hero-line {
+      width: 1px; height: 56px;
+      background: linear-gradient(to bottom, transparent, var(--ink-faint), transparent);
+      margin: 32px auto;
+    }
+
+    .hero-tagline {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: clamp(15px, 4.5vw, 19px);
+      color: var(--ink-light);
+      line-height: 2;
+      max-width: 260px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      animation: bob 2.5s ease-in-out infinite;
+    }
+    .scroll-hint span { font-size: 8px; letter-spacing: 3px; color: var(--ink-faint); }
+    .scroll-hint-line { width: 1px; height: 28px; background: linear-gradient(to bottom, var(--ink-faint), transparent); }
+    @keyframes bob {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ━━━━ 스토리 ━━━━ */
+    .story-section {
+      padding: 0 24px 20px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 9px;
+      letter-spacing: 5px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 28px;
+    }
+
+    .story-title {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: clamp(22px, 6vw, 30px);
+      font-weight: 400;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .story-body {
+      font-size: 14px;
+      line-height: 2.2;
+      color: var(--ink-light);
+      margin-bottom: 20px;
+    }
+
+    .story-highlight {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 15px;
+      color: var(--ink);
+      border-left: 2px solid var(--film);
+      padding-left: 16px;
+      margin: 32px 0;
+      line-height: 2;
+    }
+
+    /* ━━━━ 필터 이야기 ━━━━ */
+    .filters-story {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .filter-story-item {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .filter-dot {
+      width: 44px; height: 44px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(42,33,24,0.1);
+      flex-shrink: 0;
+    }
+
+    .filter-story-text h3 {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 5px;
+      letter-spacing: 1px;
+    }
+
+    .filter-story-text p {
+      font-size: 12px;
+      line-height: 2;
+      color: var(--ink-faint);
+    }
+
+    /* ━━━━ 빛깔 담기 버튼 ━━━━ */
+    .open-filter-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 440px;
+      margin: 52px auto 0;
+      padding: 18px 24px;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 2px;
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 15px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .open-filter-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+
+    .open-filter-btn:hover::before { transform: translateX(100%); }
+    .open-filter-btn:hover { background: var(--ink-light); }
+
+    .btn-arrow {
+      font-size: 18px;
+      transition: transform 0.3s;
+    }
+    .open-filter-btn:hover .btn-arrow { transform: translateX(4px); }
+
+    /* ━━━━ 구분선 ━━━━ */
+    .divider {
+      width: calc(100% - 48px);
+      max-width: 392px;
+      height: 1px;
+      background: var(--paper-dark);
+      margin: 64px auto;
+      position: relative;
+    }
+    .divider::before {
+      content: '✦';
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%,-50%);
+      background: var(--paper);
+      padding: 0 12px;
+      font-size: 9px;
+      color: var(--ink-faint);
+    }
+
+    /* ━━━━ 필터 앱 섹션 (숨김 → 펼침) ━━━━ */
+    .filter-app-section {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .filter-app-section.open {
+      max-height: 2000px;
+    }
+
+    .filter-app-inner {
+      padding: 0 0 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .filter-app-header {
+      text-align: center;
+      padding: 40px 24px 28px;
+    }
+
+    .filter-app-header span {
+      font-size: 9px;
+      letter-spacing: 5px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+
+    /* 업로드 존 - 자유 비율 */
+    .upload-zone {
+      width: calc(100% - 40px);
+      max-width: 400px;
+      min-height: 200px;
+      border: 1px solid var(--paper-dark);
+      border-radius: 4px;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 20px rgba(42,33,24,0.06);
+    }
+
+    /* 비율 고정 없음 — 플레이스홀더일 때만 최소 높이 */
+    .upload-zone.placeholder-mode {
+      min-height: 240px;
+    }
+
+    .upload-zone::before,
+    .upload-zone::after {
+      content: '';
+      position: absolute; left: 0; right: 0; height: 12px;
+      background: repeating-linear-gradient(90deg,
+        var(--paper) 0, var(--paper) 6px,
+        var(--paper-dark) 6px, var(--paper-dark) 10px,
+        var(--paper) 10px, var(--paper) 16px);
+      z-index: 2;
+    }
+    .upload-zone::before { top: 0; }
+    .upload-zone::after { bottom: 0; }
+
+    .upload-zone.has-image {
+      border-color: transparent;
+      cursor: default;
+      min-height: unset;
+    }
+    .upload-zone.has-image::before,
+    .upload-zone.has-image::after { display: none; }
+
+    .upload-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      pointer-events: none;
+      padding: 32px 0;
+    }
+
+    .upload-circle {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--paper-dark);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upload-circle svg { opacity: 0.4; }
+
+    .upload-text {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 13px;
+      color: var(--ink-faint);
+      text-align: center;
+      line-height: 2;
+    }
+
+    .upload-sub {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--ink-faint);
+      opacity: 0.5;
+    }
+
+    /* 사진이 비율에 맞게 */
+    #preview-image {
+      width: 100%;
+      height: auto;
+      display: none;
+      transition: filter 0.4s ease;
+      border-radius: 4px;
+    }
+
+    #camera-video {
+      width: 100%; height: auto;
+      display: none;
+      border-radius: 4px;
+    }
+
+    .filter-badge {
+      position: absolute;
+      bottom: 14px; right: 12px;
+      background: rgba(245,239,227,0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 2px;
+      padding: 4px 10px;
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 11px;
+      color: var(--ink);
+      letter-spacing: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .filter-badge.visible { opacity: 1; }
+
+    /* 필터 스트립 */
+    .filter-strip-wrap {
+      display: none;
+      width: 100%;
+      max-width: 440px;
+      margin-top: 18px;
+    }
+
+    .filter-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 20px 8px;
+      scrollbar-width: none;
+    }
+    .filter-strip::-webkit-scrollbar { display: none; }
+
+    .filter-item {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      flex-shrink: 0; cursor: pointer; border: none; background: none; padding: 0;
+    }
+
+    .f-swatch {
+      width: 48px; height: 48px;
+      border-radius: 4px;
+      border: 1.5px solid transparent;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      box-shadow: 0 1px 6px rgba(42,33,24,0.1);
+    }
+    .f-swatch-inner { width: 100%; height: 100%; }
+    .filter-item.active .f-swatch { border-color: var(--ink); transform: scale(1.1); }
+
+    .f-name {
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .filter-item.active .f-name { color: var(--ink); }
+
+    /* 액션 버튼 */
+    .action-buttons {
+      display: flex; gap: 8px;
+      margin-top: 14px;
+      width: calc(100% - 40px);
+      max-width: 400px;
+    }
+
+    .btn {
+      flex: 1; padding: 12px 8px;
+      border-radius: 2px;
+      border: 1px solid var(--paper-dark);
+      cursor: pointer;
+      font-family: 'Gowun Dodum', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--white);
+      color: var(--ink-light);
+    }
+    .btn:hover { background: var(--paper-dark); color: var(--ink); }
+    .btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn-primary:hover { background: var(--ink-light); }
+    .btn-capture { display: none; background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn-cancel { display: none; }
+    .btn-save { display: none; background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn-save:hover { background: var(--sage-dark); border-color: var(--sage-dark); }
+
+    /* 닫기 버튼 */
+    .close-filter-btn {
+      margin-top: 32px;
+      background: none;
+      border: none;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-family: 'Gowun Dodum', sans-serif;
+      padding: 8px 0;
+      transition: color 0.2s;
+    }
+    .close-filter-btn:hover { color: var(--ink); }
+
+    /* ━━━━ 푸터 ━━━━ */
+    footer {
+      border-top: 1px solid var(--paper-dark);
+      padding: 40px 24px 48px;
+      text-align: center;
+    }
+
+    footer strong {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--ink);
+      display: block;
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+    }
+
+    footer p {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 13px;
+      color: var(--ink-light);
+      line-height: 2;
+    }
+
+    footer .year {
+      display: block;
+      margin-top: 20px;
+      font-family: 'Gowun Dodum', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--ink-faint);
+      opacity: 0.5;
+    }
+
+    /* ━━━━ 페이드인 ━━━━ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* 로딩 */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(245,239,227,0.9);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; flex-direction: column; gap: 16px;
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 1px solid var(--paper-dark);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    canvas { display: none; }
+    input[type=file] { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <span style="font-size:10px;letter-spacing:3px;color:var(--ink-faint);">저장 중</span>
+  </div>
+
+  <!-- ━━━━ HERO ━━━━ -->
+  <section class="hero">
+    <div class="film-strip"></div>
+    <p class="hero-eyebrow">summer filter</p>
+    <h1 class="hero-title">첫여름</h1>
+    <p class="hero-sub">당신의 여름을 영화처럼</p>
+    <div class="hero-line"></div>
+    <p class="hero-tagline">
+      지나고 나서야 알게 되는<br>
+      그 계절의 자락들
+    </p>
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-hint-line"></div>
+    </div>
+  </section>
+
+  <!-- ━━━━ 스토리 ━━━━ -->
+  <section class="story-section">
+    <span class="eyebrow fade-in">만든 이의 이야기</span>
+
+    <h2 class="story-title fade-in">
+      여름은 늘<br>지나고 나서야<br>빛났다
+    </h2>
+
+    <p class="story-body fade-in">
+      어느 여름날, 오래된 앨범을 꺼내 들었습니다. 사진 속 빛은 기억보다 더 따뜻했고, 색은 생각보다 더 바래 있었어요. 그런데 이상하게도 — 그 바랜 색이 더 아름다웠습니다.
+    </p>
+
+    <p class="story-body fade-in">
+      우리는 여름을 살면서도 정작 여름을 제대로 느끼지 못할 때가 많아요. 너무 덥다고, 너무 바쁘다고. 그러다 가을이 오면 그제야 '그때 그 여름'을 그리워하죠.
+    </p>
+
+    <div class="story-highlight fade-in">
+      이번 여름만큼은,<br>
+      훗날 떠올렸을 때 가슴이 따뜻해지는<br>
+      그런 장면들로 가득 채워지길 바랍니다.
+    </div>
+
+    <p class="story-body fade-in">
+      첫여름은 그 바람에서 시작됐습니다. 특별하지 않은 오늘의 한 장면도, 알맞은 빛으로 물들이면 평생 간직하고 싶은 기억이 될 수 있다고 믿어요.
+    </p>
+
+    <!-- 필터 이야기 -->
+    <div class="filters-story">
+      <span class="eyebrow fade-in" style="margin-bottom:4px;">필터 이야기</span>
+
+      <div class="filter-story-item fade-in">
+        <div class="filter-dot" style="background:linear-gradient(145deg,#F0DFA0,#E8D090,#EAE0A8);"></div>
+        <div class="filter-story-text">
+          <h3>뙤약볕</h3>
+          <p>눈을 가늘게 뜨게 만드는 한낮의 빛. 더위에 몽롱해지는 그 느낌을 담았습니다.</p>
+        </div>
+      </div>
+
+      <div class="filter-story-item fade-in">
+        <div class="filter-dot" style="background:linear-gradient(145deg,#B8CEDC,#A4C0D0,#C0D4E4);"></div>
+        <div class="filter-story-text">
+          <h3>물비늘</h3>
+          <p>햇살이 물결 위에서 반짝이는 순간. 잔잔하면서도 빛나는 여름의 물빛입니다.</p>
+        </div>
+      </div>
+
+      <div class="filter-story-item fade-in">
+        <div class="filter-dot" style="background:linear-gradient(145deg,#BED4A0,#B0C890,#CCDCAC);"></div>
+        <div class="filter-story-text">
+          <h3>해찬솔</h3>
+          <p>햇빛이 가득 차 더욱 푸른 소나무. 화사하고 따뜻한 여름 오전의 초록입니다.</p>
+        </div>
+      </div>
+
+      <div class="filter-story-item fade-in">
+        <div class="filter-dot" style="background:linear-gradient(145deg,#8CAE88,#7A9E78,#98B894);"></div>
+        <div class="filter-story-text">
+          <h3>솔개그늘</h3>
+          <p>솔개만큼 작게 지는 그늘 아래의 서늘함. 차분하고 조용한 여름의 이면입니다.</p>
+        </div>
+      </div>
+
+      <div class="filter-story-item fade-in">
+        <div class="filter-dot" style="background:linear-gradient(145deg,#C8B090,#BAA080,#D0BC9C);"></div>
+        <div class="filter-story-text">
+          <h3>흙길</h3>
+          <p>시골 여름, 맨발로 걷던 흙의 감촉. 색이 살짝 바랜 오래된 필름 같은 향수입니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 빛깔 담기 버튼 -->
+    <button class="open-filter-btn fade-in" id="open-filter-btn" onclick="openFilterApp()">
+      오늘의 여름 빛깔 담으러 가기
+      <span class="btn-arrow">→</span>
+    </button>
+  </section>
+
+  <!-- ━━━━ 필터 앱 (숨김) ━━━━ -->
+  <div class="filter-app-section" id="filter-app-section">
+    <div class="filter-app-inner">
+
+      <div class="filter-app-header">
+        <span>사진에 여름을 입히다</span>
+      </div>
+
+      <div class="upload-zone placeholder-mode" id="upload-zone">
+        <div class="upload-placeholder" id="upload-placeholder">
+          <div class="upload-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B5C46" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p class="upload-text">사진을 올려주세요</p>
+          <p class="upload-sub">tap · drag & drop</p>
+        </div>
+        <img id="preview-image" alt="미리보기">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <div class="filter-badge" id="filter-badge"></div>
+      </div>
+
+      <div class="filter-strip-wrap" id="filter-strip-wrap">
+        <div class="filter-strip">
+          <button class="filter-item active" id="original-btn" onclick="applyFilter(null, this)">
+            <div class="f-swatch" style="background:var(--white);border:1.5px solid var(--paper-dark);display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:9px;letter-spacing:1px;color:var(--ink-faint);">원본</span>
+            </div>
+            <span class="f-name">&nbsp;</span>
+          </button>
+
+          <button class="filter-item" onclick="applyFilter('뙤약볕', this)">
+            <div class="f-swatch"><div class="f-swatch-inner" style="background:linear-gradient(145deg,#F0DFA0,#E8D090,#EAE0A8);"></div></div>
+            <span class="f-name">뙤약볕</span>
+          </button>
+
+          <button class="filter-item" onclick="applyFilter('물비늘', this)">
+            <div class="f-swatch"><div class="f-swatch-inner" style="background:linear-gradient(145deg,#B8CEDC,#A4C0D0,#C0D4E4);"></div></div>
+            <span class="f-name">물비늘</span>
+          </button>
+
+          <button class="filter-item" onclick="applyFilter('해찬솔', this)">
+            <div class="f-swatch"><div class="f-swatch-inner" style="background:linear-gradient(145deg,#BED4A0,#B0C890,#CCDCAC);"></div></div>
+            <span class="f-name">해찬솔</span>
+          </button>
+
+          <button class="filter-item" onclick="applyFilter('솔개그늘', this)">
+            <div class="f-swatch"><div class="f-swatch-inner" style="background:linear-gradient(145deg,#8CAE88,#7A9E78,#98B894);"></div></div>
+            <span class="f-name">솔개그늘</span>
+          </button>
+
+          <button class="filter-item" onclick="applyFilter('흙길', this)">
+            <div class="f-swatch"><div class="f-swatch-inner" style="background:linear-gradient(145deg,#C8B090,#BAA080,#D0BC9C);"></div></div>
+            <span class="f-name">흙길</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn" id="upload-btn">사진 올리기</button>
+        <button class="btn btn-primary" id="camera-btn">촬영하기</button>
+        <button class="btn btn-capture" id="capture-btn">찍기</button>
+        <button class="btn btn-cancel" id="cancel-camera-btn">취소</button>
+        <button class="btn btn-save" id="save-btn" onclick="downloadImage()">저장하기</button>
+      </div>
+
+      <button class="close-filter-btn" onclick="closeFilterApp()">
+        ↑ 이야기로 돌아가기
+      </button>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ━━━━ 푸터 ━━━━ -->
+  <footer>
+    <strong>첫여름</strong>
+    <p>당신의 여름이 살갗에 닿고, 코끝에 머물고,<br>발끝에 찰랑이기를 바랍니다</p>
+    <span class="year">2026</span>
+  </footer>
+
+  <input type="file" id="file-input" accept="image/*">
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const filterMap = {
+      '뙤약볕':   'brightness(1.28) saturate(1.45) contrast(0.76) blur(0.5px)',
+      '물비늘':   'brightness(1.03) saturate(1.04) contrast(0.95)',
+      '해찬솔':   'brightness(1.12) saturate(1.18) contrast(0.86) sepia(0.12)',
+      '솔개그늘': 'brightness(0.92) saturate(0.82) contrast(1.12) hue-rotate(8deg)',
+      '흙길':     'brightness(1.0) saturate(0.85) contrast(0.87) sepia(0.10) hue-rotate(-3deg)',
+    };
+
+    let currentImage = null, currentFilter = null, cameraStream = null;
+    let activeBtn = document.getElementById('original-btn');
+
+    const uploadZone        = document.getElementById('upload-zone');
+    const previewImage      = document.getElementById('preview-image');
+    const cameraVideo       = document.getElementById('camera-video');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const filterBadge       = document.getElementById('filter-badge');
+    const filterStripWrap   = document.getElementById('filter-strip-wrap');
+    const fileInput         = document.getElementById('file-input');
+    const uploadBtn         = document.getElementById('upload-btn');
+    const cameraBtn         = document.getElementById('camera-btn');
+    const captureBtn        = document.getElementById('capture-btn');
+    const cancelCameraBtn   = document.getElementById('cancel-camera-btn');
+    const saveBtn           = document.getElementById('save-btn');
+    const filterAppSection  = document.getElementById('filter-app-section');
+
+    // 필터 앱 열기
+    function openFilterApp() {
+      filterAppSection.classList.add('open');
+      setTimeout(() => {
+        filterAppSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+      // 버튼 텍스트 변경
+      const btn = document.getElementById('open-filter-btn');
+      btn.querySelector('span:not(.btn-arrow)') // 없을 수 있음
+      btn.innerHTML = '여름 빛깔 다시 담기 <span class="btn-arrow">→</span>';
+    }
+
+    // 필터 앱 닫기
+    function closeFilterApp() {
+      filterAppSection.classList.remove('open');
+      document.querySelector('.story-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 파일 업로드
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('click', () => { if (!currentImage && !cameraStream) fileInput.click(); });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => loadImage(ev.target.result);
+      reader.readAsDataURL(file);
+      fileInput.value = '';
+    });
+
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--ink-faint)'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = '';
+      const file = e.dataTransfer.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => loadImage(ev.target.result);
+      reader.readAsDataURL(file);
+    });
+
+    function loadImage(src) {
+      currentImage = src;
+      // 이미지 자연 비율로 표시
+      previewImage.src = src;
+      previewImage.style.display = 'block';
+      uploadPlaceholder.style.display = 'none';
+      uploadZone.classList.remove('placeholder-mode');
+      uploadZone.classList.add('has-image');
+      filterStripWrap.style.display = 'block';
+      saveBtn.style.display = 'flex';
+      applyFilter(null, document.getElementById('original-btn'));
+    }
+
+    // 카메라
+    cameraBtn.addEventListener('click', async () => {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+        });
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.style.display = 'block';
+        previewImage.style.display = 'none';
+        uploadPlaceholder.style.display = 'none';
+        uploadZone.classList.remove('placeholder-mode');
+        uploadZone.classList.add('has-image');
+        uploadBtn.style.display = 'none';
+        cameraBtn.style.display = 'none';
+        captureBtn.style.display = 'flex';
+        cancelCameraBtn.style.display = 'flex';
+      } catch {
+        alert('카메라에 접근할 수 없어요. 권한을 확인해 주세요.');
+      }
+    });
+
+    captureBtn.addEventListener('click', () => {
+      const c = document.createElement('canvas');
+      c.width = cameraVideo.videoWidth;
+      c.height = cameraVideo.videoHeight;
+      c.getContext('2d').drawImage(cameraVideo, 0, 0);
+      stopCamera();
+      loadImage(c.toDataURL('image/jpeg', 0.95));
+    });
+
+    cancelCameraBtn.addEventListener('click', stopCamera);
+
+    function stopCamera() {
+      if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+      cameraVideo.style.display = 'none';
+      uploadBtn.style.display = 'flex';
+      cameraBtn.style.display = 'flex';
+      captureBtn.style.display = 'none';
+      cancelCameraBtn.style.display = 'none';
+      if (!currentImage) {
+        uploadPlaceholder.style.display = 'flex';
+        uploadZone.classList.add('placeholder-mode');
+        uploadZone.classList.remove('has-image');
+      } else {
+        previewImage.style.display = 'block';
+      }
+    }
+
+    function applyFilter(filterName, btn) {
+      if (activeBtn) activeBtn.classList.remove('active');
+      btn.classList.add('active');
+      activeBtn = btn;
+      currentFilter = filterName;
+      if (!filterName) {
+        previewImage.style.filter = 'none';
+        filterBadge.textContent = '';
+        filterBadge.classList.remove('visible');
+      } else {
+        previewImage.style.filter = filterMap[filterName];
+        filterBadge.textContent = filterName;
+        filterBadge.classList.add('visible');
+      }
+    }
+
+    function downloadImage() {
+      const loading = document.getElementById('loading');
+      loading.classList.add('show');
+      setTimeout(() => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.getElementById('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.filter = (currentFilter && filterMap[currentFilter]) ? filterMap[currentFilter] : 'none';
+          ctx.drawImage(img, 0, 0);
+          const link = document.createElement('a');
+          const date = new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'');
+          link.download = `첫여름_${currentFilter || '원본'}_${date}.jpg`;
+          link.href = canvas.toDataURL('image/jpeg', 0.95);
+          link.click();
+          loading.classList.remove('show');
+        };
+        img.onerror = () => { loading.classList.remove('show'); alert('저장 중 오류가 발생했어요.'); };
+        img.src = currentImage;
+      }, 100);
+    }
+
+    // 스크롤 페이드인
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 60);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
