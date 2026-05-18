@@ -589,7 +589,7 @@
         <div class="filter-dot" style="background:linear-gradient(145deg,#F0DFA0,#E8D090,#EAE0A8);"></div>
         <div class="filter-story-text">
           <h3>뙤약볕</h3>
-          <p>눈을 가늘게 뜨게 만드는 한낮의 빛. 더위에 몽롱해지는 그 느낌을 담았습니다.</p>
+          <p>눈을 가늘게 뜨게 만드는 한낮의 빛.<br>더위에 몽롱해지는 그 느낌을 담았습니다.</p>
         </div>
       </div>
 
@@ -597,7 +597,7 @@
         <div class="filter-dot" style="background:linear-gradient(145deg,#B8CEDC,#A4C0D0,#C0D4E4);"></div>
         <div class="filter-story-text">
           <h3>물비늘</h3>
-          <p>햇살이 물결 위에서 반짝이는 순간. 잔잔하면서도 빛나는 여름의 물빛입니다.</p>
+          <p>햇살이 물결 위에서 반짝이는 순간.<br>잔잔하면서도 빛나는 여름의 물빛입니다.</p>
         </div>
       </div>
 
@@ -605,7 +605,7 @@
         <div class="filter-dot" style="background:linear-gradient(145deg,#BED4A0,#B0C890,#CCDCAC);"></div>
         <div class="filter-story-text">
           <h3>해찬솔</h3>
-          <p>햇빛이 가득 차 더욱 푸른 소나무. 화사하고 따뜻한 여름 오전의 초록입니다.</p>
+          <p>햇빛이 가득 차 더욱 푸른 소나무.<br>화사하고 따뜻한 여름 오전의 초록입니다.</p>
         </div>
       </div>
 
@@ -613,7 +613,7 @@
         <div class="filter-dot" style="background:linear-gradient(145deg,#8CAE88,#7A9E78,#98B894);"></div>
         <div class="filter-story-text">
           <h3>솔개그늘</h3>
-          <p>솔개만큼 작게 지는 그늘 아래의 서늘함. 차분하고 조용한 여름의 이면입니다.</p>
+          <p>솔개만큼 작게 지는 그늘 아래의 서늘함.<br>차분하고 조용한 여름의 이면입니다.</p>
         </div>
       </div>
 
@@ -621,7 +621,7 @@
         <div class="filter-dot" style="background:linear-gradient(145deg,#C8B090,#BAA080,#D0BC9C);"></div>
         <div class="filter-story-text">
           <h3>흙길</h3>
-          <p>시골 여름, 맨발로 걷던 흙의 감촉. 색이 살짝 바랜 오래된 필름 같은 향수입니다.</p>
+          <p>시골 여름, 맨발로 걷던 흙의 감촉.<br>색이 살짝 바랜 오래된 필름 같은 향수입니다.</p>
         </div>
       </div>
     </div>
@@ -723,7 +723,7 @@
 
   <script>
     const filterMap = {
-      '뙤약볕':   'brightness(1.28) saturate(1.45) contrast(0.76) blur(0.5px)',
+      '뙤약볕':   'brightness(1.38) saturate(1.35) contrast(0.68)',
       '물비늘':   'brightness(1.03) saturate(1.04) contrast(0.95)',
       '해찬솔':   'brightness(1.12) saturate(1.18) contrast(0.86) sepia(0.12)',
       '솔개그늘': 'brightness(0.92) saturate(0.82) contrast(1.12) hue-rotate(8deg)',
@@ -870,24 +870,37 @@
     function downloadImage() {
       const loading = document.getElementById('loading');
       loading.classList.add('show');
+
       setTimeout(() => {
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+
         img.onload = () => {
-          const canvas = document.getElementById('canvas');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.filter = (currentFilter && filterMap[currentFilter]) ? filterMap[currentFilter] : 'none';
-          ctx.drawImage(img, 0, 0);
+          const tmpCanvas = document.createElement('canvas');
+          tmpCanvas.width = img.naturalWidth;
+          tmpCanvas.height = img.naturalHeight;
+          const tmpCtx = tmpCanvas.getContext('2d');
+
+          if (currentFilter && filterMap[currentFilter]) {
+            // blur는 Canvas에서 지원 안 되므로 제거 후 적용
+            const cssFilter = filterMap[currentFilter].replace(/blur\([^)]*\)/g, '').trim();
+            tmpCtx.filter = cssFilter || 'none';
+          }
+
+          tmpCtx.drawImage(img, 0, 0);
+
           const link = document.createElement('a');
           const date = new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'');
           link.download = `첫여름_${currentFilter || '원본'}_${date}.jpg`;
-          link.href = canvas.toDataURL('image/jpeg', 0.95);
+          link.href = tmpCanvas.toDataURL('image/jpeg', 0.95);
           link.click();
           loading.classList.remove('show');
         };
-        img.onerror = () => { loading.classList.remove('show'); alert('저장 중 오류가 발생했어요.'); };
+
+        img.onerror = () => {
+          loading.classList.remove('show');
+          alert('저장 중 오류가 발생했어요.');
+        };
+
         img.src = currentImage;
       }, 100);
     }
