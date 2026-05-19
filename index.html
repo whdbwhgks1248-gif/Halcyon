@@ -529,6 +529,60 @@
 
     canvas { display: none; }
     input[type=file] { display: none; }
+    /* 멀티 이미지 갤러리 */
+    .multi-gallery {
+      display: none;
+      width: calc(100% - 40px);
+      max-width: 400px;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .multi-gallery.show { display: flex; }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(42,33,24,0.08);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: filter 0.35s ease;
+    }
+
+    .gallery-item-badge {
+      position: absolute;
+      bottom: 10px; right: 10px;
+      background: rgba(245,239,227,0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 2px;
+      padding: 3px 8px;
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 10px;
+      color: var(--ink);
+      letter-spacing: 2px;
+    }
+
+    .gallery-count {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--ink-faint);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .btn-save-all {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+      display: none;
+    }
+    .btn-save-all:hover { background: var(--sage-dark); border-color: var(--sage-dark); }
+
   </style>
 </head>
 <body>
@@ -658,6 +712,10 @@
         <div class="filter-badge" id="filter-badge"></div>
       </div>
 
+      <!-- 멀티 갤러리 -->
+      <div class="gallery-count" id="gallery-count"></div>
+      <div class="multi-gallery" id="multi-gallery"></div>
+
       <div class="filter-strip-wrap" id="filter-strip-wrap">
         <div class="filter-strip">
           <button class="filter-item active" id="original-btn" onclick="applyFilter(null, this)">
@@ -700,6 +758,7 @@
         <button class="btn btn-capture" id="capture-btn">찍기</button>
         <button class="btn btn-cancel" id="cancel-camera-btn">취소</button>
         <button class="btn btn-save" id="save-btn" onclick="downloadImage()">저장하기</button>
+        <button class="btn btn-save-all" id="save-all-btn" onclick="downloadAll()">전체 저장</button>
       </div>
 
       <button class="close-filter-btn" onclick="closeFilterApp()">
@@ -718,7 +777,7 @@
     <span class="year">2026</span>
   </footer>
 
-  <input type="file" id="file-input" accept="image/*">
+  <input type="file" id="file-input" accept="image/*" multiple>
   <canvas id="canvas"></canvas>
 
   <script>
@@ -731,6 +790,7 @@
     };
 
     let currentImage = null, currentFilter = null, cameraStream = null;
+    let imageList = []; // 여러 장 저장
     let activeBtn = document.getElementById('original-btn');
 
     const uploadZone        = document.getElementById('upload-zone');
@@ -745,6 +805,9 @@
     const captureBtn        = document.getElementById('capture-btn');
     const cancelCameraBtn   = document.getElementById('cancel-camera-btn');
     const saveBtn           = document.getElementById('save-btn');
+    const saveAllBtn        = document.getElementById('save-all-btn');
+    const multiGallery      = document.getElementById('multi-gallery');
+    const galleryCount      = document.getElementById('gallery-count');
     const filterAppSection  = document.getElementById('filter-app-section');
 
     // 필터 앱 열기
@@ -770,11 +833,19 @@
     uploadZone.addEventListener('click', () => { if (!currentImage && !cameraStream) fileInput.click(); });
 
     fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => loadImage(ev.target.result);
-      reader.readAsDataURL(file);
+      const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/')).slice(0, 10);
+      if (!files.length) return;
+      imageList = [];
+      let loaded = 0;
+      files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          imageList[idx] = ev.target.result;
+          loaded++;
+          if (loaded === files.length) renderGallery();
+        };
+        reader.readAsDataURL(file);
+      });
       fileInput.value = '';
     });
 
@@ -783,24 +854,66 @@
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadZone.style.borderColor = '';
-      const file = e.dataTransfer.files[0];
-      if (!file || !file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => loadImage(ev.target.result);
-      reader.readAsDataURL(file);
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')).slice(0, 10);
+      if (!files.length) return;
+      imageList = [];
+      let loaded = 0;
+      files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          imageList[idx] = ev.target.result;
+          loaded++;
+          if (loaded === files.length) renderGallery();
+        };
+        reader.readAsDataURL(file);
+      });
     });
 
-    function loadImage(src) {
-      currentImage = src;
-      // 이미지 자연 비율로 표시
-      previewImage.src = src;
-      previewImage.style.display = 'block';
+    function renderGallery() {
+      // 업로드 존 숨기고 갤러리 표시
       uploadPlaceholder.style.display = 'none';
-      uploadZone.classList.remove('placeholder-mode');
-      uploadZone.classList.add('has-image');
+      previewImage.style.display = 'none';
+      uploadZone.style.display = 'none';
+
+      multiGallery.innerHTML = '';
+      imageList.forEach((src, idx) => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.id = `gallery-item-${idx}`;
+        const img = document.createElement('img');
+        img.src = src;
+        img.id = `gallery-img-${idx}`;
+        img.dataset.filter = '';
+        const badge = document.createElement('div');
+        badge.className = 'gallery-item-badge';
+        badge.id = `gallery-badge-${idx}`;
+        badge.style.display = 'none';
+        item.appendChild(img);
+        item.appendChild(badge);
+        multiGallery.appendChild(item);
+      });
+
+      galleryCount.textContent = `${imageList.length}장 선택됨`;
+      multiGallery.classList.add('show');
       filterStripWrap.style.display = 'block';
-      saveBtn.style.display = 'flex';
-      applyFilter(null, document.getElementById('original-btn'));
+
+      // 버튼 정리
+      if (imageList.length === 1) {
+        currentImage = imageList[0];
+        saveBtn.style.display = 'flex';
+        saveAllBtn.style.display = 'none';
+      } else {
+        currentImage = imageList[0];
+        saveBtn.style.display = 'none';
+        saveAllBtn.style.display = 'flex';
+      }
+
+      applyFilter(currentFilter, activeBtn);
+    }
+
+    function loadImage(src) {
+      imageList = [src];
+      renderGallery();
     }
 
     // 카메라
@@ -856,6 +969,8 @@
       btn.classList.add('active');
       activeBtn = btn;
       currentFilter = filterName;
+
+      // 단일 이미지
       if (!filterName) {
         previewImage.style.filter = 'none';
         filterBadge.textContent = '';
@@ -865,6 +980,49 @@
         filterBadge.textContent = filterName;
         filterBadge.classList.add('visible');
       }
+
+      // 갤러리 이미지 전체 적용
+      imageList.forEach((_, idx) => {
+        const img = document.getElementById(`gallery-img-${idx}`);
+        const badge = document.getElementById(`gallery-badge-${idx}`);
+        if (img) {
+          img.style.filter = filterName ? filterMap[filterName] : 'none';
+        }
+        if (badge) {
+          badge.textContent = filterName || '';
+          badge.style.display = filterName ? 'block' : 'none';
+        }
+      });
+    }
+
+    // 전체 저장 (순차적으로)
+    async function downloadAll() {
+      const loading = document.getElementById('loading');
+      loading.classList.add('show');
+      const date = new Date().toLocaleDateString('ko-KR').replace(/\./, '').replace(/ /g,'');
+
+      for (let idx = 0; idx < imageList.length; idx++) {
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = img.naturalWidth;
+            tmpCanvas.height = img.naturalHeight;
+            const tmpCtx = tmpCanvas.getContext('2d');
+            tmpCtx.drawImage(img, 0, 0);
+            if (currentFilter && filterMap[currentFilter]) {
+              applyPixelFilter(tmpCtx, tmpCanvas.width, tmpCanvas.height, filterMap[currentFilter]);
+            }
+            const link = document.createElement('a');
+            link.download = `첫여름_${currentFilter || '원본'}_${idx+1}_${date}.jpg`;
+            link.href = tmpCanvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+            setTimeout(resolve, 300);
+          };
+          img.src = imageList[idx];
+        });
+      }
+      loading.classList.remove('show');
     }
 
     // 픽셀 직접 조작으로 필터 적용 (모바일 완전 지원)
