@@ -836,18 +836,24 @@
       const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/')).slice(0, 10);
       if (!files.length) return;
       imageList = [];
-      let loaded = 0;
-      files.forEach((file, idx) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          imageList[idx] = ev.target.result;
-          loaded++;
-          if (loaded === files.length) renderGallery();
-        };
-        reader.readAsDataURL(file);
-      });
       fileInput.value = '';
+      // 순차 로딩 (모바일 메모리 안정성)
+      loadFilesSequentially(files, 0);
     });
+
+    function loadFilesSequentially(files, idx) {
+      if (idx >= files.length) { renderGallery(); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        imageList.push(ev.target.result);
+        loadFilesSequentially(files, idx + 1);
+      };
+      reader.onerror = () => {
+        // 실패한 파일은 건너뜀
+        loadFilesSequentially(files, idx + 1);
+      };
+      reader.readAsDataURL(files[idx]);
+    }
 
     uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--ink-faint)'; });
     uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
@@ -870,48 +876,55 @@
     });
 
     function renderGallery() {
-      // 업로드 존 숨기고 갤러리 표시
       uploadPlaceholder.style.display = 'none';
       previewImage.style.display = 'none';
       uploadZone.style.display = 'none';
 
       multiGallery.innerHTML = '';
+      imageList = imageList.filter(Boolean);
+
       imageList.forEach((src, idx) => {
         const item = document.createElement('div');
         item.className = 'gallery-item';
-        item.id = `gallery-item-${idx}`;
+        item.id = 'gallery-item-' + idx;
         const img = document.createElement('img');
         img.src = src;
-        img.id = `gallery-img-${idx}`;
-        img.dataset.filter = '';
+        img.id = 'gallery-img-' + idx;
         const badge = document.createElement('div');
         badge.className = 'gallery-item-badge';
-        badge.id = `gallery-badge-${idx}`;
+        badge.id = 'gallery-badge-' + idx;
         badge.style.display = 'none';
         item.appendChild(img);
         item.appendChild(badge);
         multiGallery.appendChild(item);
       });
 
-      galleryCount.textContent = `${imageList.length}장 선택됨`;
+      galleryCount.textContent = imageList.length + '장 선택됨';
       multiGallery.classList.add('show');
-      filterStripWrap.style.display = 'block';
+      filterStripWrap.style.cssText = 'display:block !important; visibility:visible; opacity:1;';
 
-      // 버튼 정리
-      if (imageList.length === 1) {
-        currentImage = imageList[0];
+      currentImage = imageList[0] || null;
+
+      if (imageList.length <= 1) {
         saveBtn.style.display = 'flex';
         saveAllBtn.style.display = 'none';
       } else {
-        currentImage = imageList[0];
         saveBtn.style.display = 'none';
         saveAllBtn.style.display = 'flex';
       }
 
-      applyFilter(currentFilter, activeBtn);
-    }
-
-    function loadImage(src) {
+      const origBtn = document.getElementById('original-btn');
+      if (activeBtn) activeBtn.classList.remove('active');
+      origBtn.classList.add('active');
+      activeBtn = origBtn;
+      currentFilter = null;
+      imageList.forEach((_, idx) => {
+        const img = document.getElementById('gallery-img-' + idx);
+        const badge = document.getElementById('gallery-badge-' + idx);
+        if (img) img.style.filter = 'none';
+        if (badge) badge.style.display = 'none';
+      });
+    } function loadImage(src) {
       imageList = [src];
       renderGallery();
     }
