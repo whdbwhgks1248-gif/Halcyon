@@ -878,7 +878,7 @@
           const tmpCanvas = document.createElement('canvas');
           tmpCanvas.width = img.naturalWidth;
           tmpCanvas.height = img.naturalHeight;
-          const tmpCtx = tmpCanvas.getContext('2d');
+          const tmpCtx = tmpCanvas.getContext('2d', { colorSpace: 'display-p3' });
 
           if (currentFilter && filterMap[currentFilter]) {
             // blur는 Canvas에서 지원 안 되므로 제거 후 적용
