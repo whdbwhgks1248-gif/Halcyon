@@ -49,13 +49,13 @@
     .open-filter-btn:hover { background:var(--ink-light); }
     .btn-arrow { font-size:18px; transition:transform 0.3s; }
     .open-filter-btn:hover .btn-arrow { transform:translateX(4px); }
-    .divider { width:calc(100% - 48px); max-width:392px; height:1px; background:var(--paper-dark); margin:64px auto; position:relative; }
+    .divider { width:calc(100% - 48px); max-width:392px; height:1px; background:var(--paper-dark); margin:32px auto; position:relative; }
     .divider::before { content:'✦'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--paper); padding:0 12px; font-size:9px; color:var(--ink-faint); }
 
     /* 필터 앱 */
     .filter-app-section { max-height:0; overflow:hidden; transition:max-height 1s cubic-bezier(0.16,1,0.3,1); }
     .filter-app-section.open { max-height:99999px; }
-    .filter-app-inner { padding:0 0 60px; display:flex; flex-direction:column; align-items:center; }
+    .filter-app-inner { padding:0 0 20px; display:flex; flex-direction:column; align-items:center; }
     .filter-app-header { text-align:center; padding:40px 24px 20px; }
     .filter-app-header span { font-size:9px; letter-spacing:5px; color:var(--ink-faint); text-transform:uppercase; }
 
@@ -105,7 +105,7 @@
     .slider-divider { height:1px; background:var(--paper-dark); margin:12px 0; }
 
     /* 액션 버튼 */
-    .action-buttons { display:flex; gap:8px; margin-top:12px; width:calc(100% - 40px); max-width:400px; }
+    .action-buttons { display:flex; gap:8px; margin-top:8px; width:calc(100% - 40px); max-width:400px; }
     .btn { flex:1; padding:12px 8px; border-radius:2px; border:1px solid var(--paper-dark); cursor:pointer; font-family:'Gowun Dodum',sans-serif; font-size:11px; letter-spacing:2px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--white); color:var(--ink-light); }
     .btn:hover { background:var(--paper-dark); color:var(--ink); }
     .btn-primary { background:var(--ink); color:var(--paper); border-color:var(--ink); }
@@ -389,7 +389,36 @@
   <div class="filter-app-inner">
     <div class="filter-app-header"><span>사진에 여름을 입히다</span></div>
 
-    <!-- 필터 스트립 (사진 위) -->
+        <!-- 업로드 존 -->
+    <div class="upload-zone" id="upload-zone">
+      <div class="upload-placeholder" id="upload-placeholder">
+        <div class="upload-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B5C46" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <p class="upload-text">사진을 올려주세요</p>
+        <p class="upload-sub">tap · drag & drop</p>
+      </div>
+      <img id="preview-image" alt="미리보기">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <div class="filter-badge" id="filter-badge"></div>
+    </div>
+
+        <!-- 갤러리 슬라이드 -->
+    <div class="gallery-count" id="gallery-count"></div>
+    <div class="multi-gallery" id="multi-gallery">
+      <div class="slide-track" id="slide-track"></div>
+      <div class="slide-nav" id="slide-nav" style="display:none;">
+        <button class="slide-btn" id="slide-prev" onclick="slideMove(-1)">&#8592;</button>
+        <div class="slide-dots" id="slide-dots"></div>
+        <button class="slide-btn" id="slide-next" onclick="slideMove(1)">&#8594;</button>
+      </div>
+    </div>
+
+        <!-- 필터 스트립 (사진 아래) -->
     <div class="filter-strip-wrap" id="filter-strip-wrap">
       <div class="filter-strip">
         <button class="filter-item active" id="original-btn" onclick="selectFilter(null, this)">
@@ -421,28 +450,10 @@
       </div>
     </div>
 
-    <!-- 업로드 존 (필터 아래, 갤러리 위) -->
-    <div class="upload-zone" id="upload-zone">
-      <div class="upload-placeholder" id="upload-placeholder">
-        <div class="upload-circle">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B5C46" stroke-width="1.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-        <p class="upload-text">사진을 올려주세요</p>
-        <p class="upload-sub">tap · drag & drop</p>
-      </div>
-      <img id="preview-image" alt="미리보기">
-      <video id="camera-video" autoplay playsinline muted></video>
-      <div class="filter-badge" id="filter-badge"></div>
-    </div>
-
-    <!-- 감성 문구 -->
+        <!-- 감성 문구 -->
     <div class="filter-mood" id="filter-mood"><p id="filter-mood-text"></p></div>
 
-    <!-- 슬라이더 -->
+        <!-- 슬라이더 -->
     <div class="slider-section" id="slider-section">
       <div class="slider-row">
         <span class="slider-label">강도</span>
@@ -457,18 +468,7 @@
       </div>
     </div>
 
-    <!-- 갤러리 -->
-    <div class="gallery-count" id="gallery-count"></div>
-    <div class="multi-gallery" id="multi-gallery">
-      <div class="slide-track" id="slide-track"></div>
-      <div class="slide-nav" id="slide-nav" style="display:none;">
-        <button class="slide-btn" id="slide-prev" onclick="slideMove(-1)">&#8592;</button>
-        <div class="slide-dots" id="slide-dots"></div>
-        <button class="slide-btn" id="slide-next" onclick="slideMove(1)">&#8594;</button>
-      </div>
-    </div>
-
-    <!-- 액션 버튼 (갤러리/사진 아래) -->
+        <!-- 액션 버튼 (갤러리/사진 아래) -->
     <div class="action-buttons">
       <button class="btn" id="upload-btn">사진 올리기</button>
       <button class="btn btn-primary" id="camera-btn">촬영하기</button>
@@ -493,7 +493,7 @@
 <canvas id="canvas"></canvas>
 
 <script>
-  var filterDef = {
+    var filterDef = {
     '뙤약볕':   { brightness:1.28, saturate:1.08, contrast:0.78, sepia:0.00, hue:-5 },
     '물비늘':   { brightness:1.10, saturate:1.25, contrast:0.88, sepia:0,    hue:0 },
     '해찬솔':   { brightness:1.12, saturate:1.08, contrast:0.95, sepia:0.00, hue:0 },
@@ -540,9 +540,10 @@
     var f = 'brightness('+d.brightness.toFixed(3)+') saturate('+d.saturate.toFixed(3)+') contrast('+d.contrast.toFixed(3)+')';
     if (d.sepia>0.005) f += ' sepia('+d.sepia.toFixed(3)+')';
     if (Math.abs(d.hue)>0.1) f += ' hue-rotate('+d.hue.toFixed(1)+'deg)';
-    if (name === '해찬솔') f += ' blur(' + (0.3 + secVal * 0.25).toFixed(2) + 'px)';
-    // 뙤약볕: 기본 bloom은 CSS blur로 미리보기 표현
-    if (name === '뚔약별') f += ' blur(' + (0.4 + secVal * 0.35).toFixed(2) + 'px)';
+    // 해찬솔: Anti-sharpness blur - intensity 반영, 기본값 줄임
+    if (name === '해찬솔' && intVal > 0) f += ' blur(' + (intVal * 0.18 + secVal * 0.15).toFixed(2) + 'px)';
+    // 뙤약볕: bloom blur - intensity 반영
+    if (name === '뚔약별' && intVal > 0) f += ' blur(' + (intVal * 0.35 + secVal * 0.30).toFixed(2) + 'px)';
     return f;
   }
 
@@ -785,6 +786,7 @@
 
   var observer=new IntersectionObserver(function(entries){entries.forEach(function(e,i){if(e.isIntersecting)setTimeout(function(){e.target.classList.add('visible');},i*60);});},{threshold:0.1});
   document.querySelectorAll('.fade-in').forEach(function(el){observer.observe(el);});
+
 </script>
 </body>
 </html>
