@@ -494,9 +494,9 @@
 
 <script>
   var filterDef = {
-    '뙤약볕':   { brightness:1.28, saturate:1.08, contrast:0.78, sepia:0.00, hue:-2 },
+    '뙤약볕':   { brightness:1.28, saturate:1.08, contrast:0.78, sepia:0.00, hue:-5 },
     '물비늘':   { brightness:1.10, saturate:1.25, contrast:0.88, sepia:0,    hue:0 },
-    '해찬솔':   { brightness:1.18, saturate:1.45, contrast:0.78, sepia:0.06, hue:0 },
+    '해찬솔':   { brightness:1.12, saturate:1.08, contrast:0.95, sepia:0.00, hue:0 },
     '솔개그늘': { brightness:0.82, saturate:0.68, contrast:1.18, sepia:0,    hue:10 },
     '흙길':     { brightness:0.98, saturate:0.78, contrast:0.82, sepia:0.22, hue:-4 }
   };
@@ -508,11 +508,11 @@
     '흙길':     '기억처럼 바랜 여름의 공기'
   };
   var secondaryDef = {
-    '뙤약볕':   { label:'빛 번짐',  fn: function(v,d){ d.brightness += v*0.18; d.contrast -= v*0.12; } },
-    '물비늘':   { label:'반짝임',   fn: function(v,d){ d.saturate += v*0.30; d.brightness += v*0.10; } },
-    '해찬솔':   { label:'초록 농도', fn: function(v,d){ d.saturate += v*0.35; } },
-    '솔개그늘': { label:'차분함',   fn: function(v,d){ d.brightness -= v*0.14; d.saturate -= v*0.12; } },
-    '흙길':     { label:'필름감',   fn: function(v,d){ d.sepia += v*0.24; d.contrast -= v*0.08; } }
+    '뙤약볕':   { label:'빛 번짐',  fn: function(v,d){ d.brightness += v*0.12; d.contrast -= v*0.08; } },
+    '물비늘':   { label:'반짝임',   fn: function(v,d){ d.contrast += v*0.14; d.brightness += v*0.08; } },
+    '해찬솔':   { label:'싱그러움', fn: function(v,d){ d.saturate -= v*0.10; d.brightness += v*0.08; } },
+    '솔개그늘': { label:'차분함',   fn: function(v,d){ d.brightness += v*0.06; d.contrast -= v*0.10; } },
+    '흙길':     { label:'필름감',   fn: function(v,d){ d.contrast -= v*0.05; } }
   };
   var neutral = { brightness:1, saturate:1, contrast:1, sepia:0, hue:0 };
   var imageList = [], currentFilter = null, currentSlide = 0, cameraStream = null;
@@ -540,6 +540,9 @@
     var f = 'brightness('+d.brightness.toFixed(3)+') saturate('+d.saturate.toFixed(3)+') contrast('+d.contrast.toFixed(3)+')';
     if (d.sepia>0.005) f += ' sepia('+d.sepia.toFixed(3)+')';
     if (Math.abs(d.hue)>0.1) f += ' hue-rotate('+d.hue.toFixed(1)+'deg)';
+    if (name === '해찬솔') f += ' blur(' + (0.3 + secVal * 0.25).toFixed(2) + 'px)';
+    // 뙤약볕: 기본 bloom은 CSS blur로 미리보기 표현
+    if (name === '뚔약별') f += ' blur(' + (0.4 + secVal * 0.35).toFixed(2) + 'px)';
     return f;
   }
 
@@ -617,7 +620,88 @@
 
   function applyBloom(ctx,w,h,strength){var data=ctx.getImageData(0,0,w,h),d=data.data;for(var i=0;i<d.length;i+=4){var r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,luma=0.2126*r+0.7152*g+0.0722*b;if(luma>0.68){var amt=Math.min((luma-0.68)/0.32,1)*strength;r=Math.min(1,r+amt*0.09);g=Math.min(1,g+amt*0.05);b=Math.min(1,b+amt*0.02);}d[i]=Math.round(r*255);d[i+1]=Math.round(g*255);d[i+2]=Math.round(b*255);}ctx.putImageData(data,0,0);}
 
-  function processImage(src,callback){var css=computeFilter(currentFilter,intensity,secondary);var img=new Image();img.onload=function(){var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);if(css!=='none')applyPixelFilter(ctx,c.width,c.height,css);if(currentFilter==='뙤약볕'){var bloomStr=0.25+secondary*0.35;applyBloom(ctx,c.width,c.height,bloomStr);}callback(c.toDataURL('image/jpeg',0.95));};img.onerror=function(){document.getElementById('loading').classList.remove('show');alert('처리 중 오류가 발생했어요.');};img.src=src;}
+  // 물비늘: Clarity + White Highlight Exposure
+  function applyClarity(ctx, w, h, clarityStr, highlightStr) {
+    var data = ctx.getImageData(0, 0, w, h), d = data.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
+      var luma = 0.2126*r + 0.7152*g + 0.0722*b;
+      // Clarity: 중간톤 로컬 대비 강화
+      if (luma > 0.2 && luma < 0.85) {
+        var mid = 0.5, push = (luma - mid) * clarityStr * 0.5;
+        r = Math.min(1, Math.max(0, r + push));
+        g = Math.min(1, Math.max(0, g + push));
+        b = Math.min(1, Math.max(0, b + push));
+      }
+      // White Highlight Exposure: 밝은 영역 노출 증가
+      if (luma > 0.72) {
+        var hl = (luma - 0.72) / 0.28 * highlightStr;
+        r = Math.min(1, r + hl * 0.18);
+        g = Math.min(1, g + hl * 0.18);
+        b = Math.min(1, b + hl * 0.20);
+      }
+      d[i]=Math.round(r*255); d[i+1]=Math.round(g*255); d[i+2]=Math.round(b*255);
+    }
+    ctx.putImageData(data, 0, 0);
+  }
+
+  // 솔개그늘: Black Level Lift + Shadow Matte Blue Tint
+  function applyShadowMatte(ctx, w, h, liftStr) {
+    var data = ctx.getImageData(0, 0, w, h), d = data.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
+      var luma = 0.2126*r + 0.7152*g + 0.0722*b;
+      // Black Level Lift: 암부 바닥 올리기 (매트 필름 효과)
+      if (luma < 0.45) {
+        var shadowAmt = (0.45 - luma) / 0.45;
+        var lift = liftStr * 0.12 * shadowAmt;
+        r = Math.min(1, r + lift * 0.85);
+        g = Math.min(1, g + lift * 0.88);
+        b = Math.min(1, b + lift * 1.0); // 블루 틴트
+      }
+      d[i]=Math.round(r*255); d[i+1]=Math.round(g*255); d[i+2]=Math.round(b*255);
+    }
+    ctx.putImageData(data, 0, 0);
+  }
+
+  // 흙길: Film Grain Noise
+  function applyFilmGrain(ctx, w, h, grainStr) {
+    var data = ctx.getImageData(0, 0, w, h), d = data.data;
+    var seed = 42;
+    function rand() { seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF; return (seed >>> 0) / 0xFFFFFFFF; }
+    for (var i = 0; i < d.length; i += 4) {
+      var noise = (rand() - 0.5) * grainStr * 38;
+      d[i]   = Math.min(255, Math.max(0, d[i]   + noise));
+      d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise * 0.92));
+      d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise * 0.85));
+    }
+    ctx.putImageData(data, 0, 0);
+  }
+
+  function applyGreenTuning(ctx, w, h, softness) {
+    var data = ctx.getImageData(0, 0, w, h), d = data.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
+      var isGreenish = (g > r*1.05) && (g > b*1.05) && g > 0.25;
+      if (isGreenish) {
+        var gd = Math.min((g - Math.max(r,b)) / 0.3, 1);
+        var gray = 0.2126*r + 0.7152*g + 0.0722*b;
+        var desat = 0.05 * gd;
+        r = r + (gray-r)*desat; g = g + (gray-g)*desat; b = b + (gray-b)*desat;
+        var lb = 0.08 * gd * softness;
+        r = Math.min(1, r + lb*0.6); g = Math.min(1, g + lb); b = Math.min(1, b + lb*0.7);
+      }
+      d[i]=Math.round(r*255); d[i+1]=Math.round(g*255); d[i+2]=Math.round(b*255);
+    }
+    ctx.putImageData(data, 0, 0);
+  }
+
+  function processImage(src,callback){var css=computeFilter(currentFilter,intensity,secondary);var img=new Image();img.onload=function(){var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);if(css!=='none')applyPixelFilter(ctx,c.width,c.height,css);if(currentFilter==='뙤약볕'){var bloomStr=0.25+secondary*0.35;applyBloom(ctx,c.width,c.height,0.18+secondary*0.30);}
+      if(currentFilter==='해찬솔'){applyGreenTuning(ctx,c.width,c.height,0.4+secondary*0.6);}
+      if(currentFilter==='물비늘'){applyClarity(ctx,c.width,c.height,secondary*0.25,secondary*0.15);}
+      if(currentFilter==='솔개그늘'){applyShadowMatte(ctx,c.width,c.height,secondary);}
+      if(currentFilter==='흑길'){applyFilmGrain(ctx,c.width,c.height,secondary*0.35);}
+      callback(c.toDataURL('image/jpeg',0.95));};img.onerror=function(){document.getElementById('loading').classList.remove('show');alert('처리 중 오류가 발생했어요.');};img.src=src;}
 
   // 순차 저장용 상태
   var saveQueue = [], saveQueueIdx = 0;
