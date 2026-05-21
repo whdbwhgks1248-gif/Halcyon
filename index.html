@@ -679,6 +679,51 @@
     ctx.putImageData(data, 0, 0);
   }
 
+  // Canvas 박스 블러 (해찬솔 Anti-Sharpness 저장용)
+  function applyBoxBlur(ctx, w, h, radius) {
+    if (radius <= 0) return;
+    var r = Math.max(1, Math.round(radius));
+    var data = ctx.getImageData(0, 0, w, h);
+    var d = data.data;
+    var tmp = new Uint8ClampedArray(d);
+
+    // 가로 패스
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var rSum=0, gSum=0, bSum=0, count=0;
+        for (var dx = -r; dx <= r; dx++) {
+          var nx = Math.min(w-1, Math.max(0, x+dx));
+          var idx = (y*w + nx)*4;
+          rSum += tmp[idx]; gSum += tmp[idx+1]; bSum += tmp[idx+2];
+          count++;
+        }
+        var oi = (y*w + x)*4;
+        d[oi]   = rSum/count;
+        d[oi+1] = gSum/count;
+        d[oi+2] = bSum/count;
+      }
+    }
+
+    // 세로 패스
+    var tmp2 = new Uint8ClampedArray(d);
+    for (var y2 = 0; y2 < h; y2++) {
+      for (var x2 = 0; x2 < w; x2++) {
+        var rS=0, gS=0, bS=0, cnt=0;
+        for (var dy = -r; dy <= r; dy++) {
+          var ny = Math.min(h-1, Math.max(0, y2+dy));
+          var ii = (ny*w + x2)*4;
+          rS += tmp2[ii]; gS += tmp2[ii+1]; bS += tmp2[ii+2];
+          cnt++;
+        }
+        var oo = (y2*w + x2)*4;
+        d[oo]   = rS/cnt;
+        d[oo+1] = gS/cnt;
+        d[oo+2] = bS/cnt;
+      }
+    }
+    ctx.putImageData(data, 0, 0);
+  }
+
   function applyGreenTuning(ctx, w, h, softness) {
     var data = ctx.getImageData(0, 0, w, h), d = data.data;
     for (var i = 0; i < d.length; i += 4) {
@@ -698,7 +743,12 @@
   }
 
   function processImage(src,callback){var css=computeFilter(currentFilter,intensity,secondary);var img=new Image();img.onload=function(){var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);if(css!=='none')applyPixelFilter(ctx,c.width,c.height,css);if(currentFilter==='뙤약볕'){var bloomStr=0.25+secondary*0.35;applyBloom(ctx,c.width,c.height,0.18+secondary*0.30);}
-      if(currentFilter==='해찬솔'){applyGreenTuning(ctx,c.width,c.height,0.4+secondary*0.6);}
+      if(currentFilter==='해찬솔'){
+        applyGreenTuning(ctx,c.width,c.height,0.4+secondary*0.6);
+        // CSS blur와 동일한 강도로 박스 블러 적용
+        var blurRadius = Math.round((intensity*0.18 + secondary*0.15) * 4);
+        if (blurRadius > 0) applyBoxBlur(ctx, c.width, c.height, blurRadius);
+      }
       if(currentFilter==='물비늘'){applyClarity(ctx,c.width,c.height,secondary*0.25,secondary*0.15);}
       if(currentFilter==='솔개그늘'){applyShadowMatte(ctx,c.width,c.height,secondary);}
       if(currentFilter==='흑길'){applyFilmGrain(ctx,c.width,c.height,secondary*0.35);}
